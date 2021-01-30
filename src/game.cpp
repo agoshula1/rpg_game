@@ -32,8 +32,8 @@ void setup(um_move& moves, um_enem& enemies, std::forward_list<Location>& map){
     moves["Knockdown"] = Move("Knockdown", "a forcefull hit to one target", -10, false);
     
     // moves corresponding to inventory items
-    moves["Medicine"] = Item("Medicine", "heals one target by 10 HP", 10, false, 3);
-    moves["Bomb"] = Item("Bomb", "causes explosion hitting all enemies", -10, true, 2);
+    moves["Medicine"] = Item("Medicine", "heals one target by 10 HP", 10, false, 0);
+    moves["Bomb"] = Item("Bomb", "causes explosion hitting all enemies", -10, true, 0);
     
     // enemy/ally moves
     moves[""]
@@ -109,7 +109,6 @@ int main(){
 
     // init status
     Character prot = new Character("hero", 15, {"Poke", "Medicine", "Bomb"});
-    Location* curr_loc = map.begin();
     Character ally = NULL;
     vector<Character> party = {};
     
@@ -118,21 +117,21 @@ int main(){
     vector<std::string> enemies; // names of enemies in current location
     int choice;
     bool won = true;
-    while(curr_loc != map.end()){
-        std::cout << curr_loc->describe() << "\n";
+    for(Location& loc : map){
+        std::cout << loc.describe() << "\n";
         
         // apply any healing effect from current location
         hp_regain = prot.hp();
-        prot.heal(curr_loc->heal_effect());
+        prot.heal(loc.heal_effect());
         hp_regain = prot.hp() - hp_regain;
         if(hp_regain > 0){
             std::cout << "You regained " << hp_regain << " HP!\n";
         }
 
         // battle any enemies in area
-        enemies = curr_loc->enemies();
+        enemies = loc.enemies();
         if(!enemies.empty()){
-            won = battle(prot, ally, curr_loc->enemies(), enemy_types)
+            won = battle(prot, ally, loc.enemies(), enemy_types)
             if(!won){
                 std::cout << "Game Over.\n";
                 break; // end game
@@ -141,8 +140,32 @@ int main(){
             }
         }
 
-        // check if special location (inn or boss room)
-        //TODO
+        // check for locations with special events
+        if(loc.name().substr(3) == "Inn"){
+            // replenish supplies while at the inn
+            move_types["Medicine"].replenish(3);
+            std::cout << "You picked up 3 medicines at the inn (for a total of " << move_types["Medicine"].uses() << ")\n";
+            move_types["Bomb"].replenish(2);
+            std::cout << "You picked up 2 bombs at the inn (for a total of " << move_types["Bomb"].uses() << ")\n";
+        } else if(loc.name().substr(4) == "Boss"){
+            // enemy becomes a new ally
+            Character new_ally = enemy_types[enemies[0]];
+            new_ally.add_moves({"Medicine", "Bomb"});
+            
+            std::cout << new_ally.name() << " became a new ally!\n";
+            if(!ally){
+                ally = new_ally;
+            } else {
+                std::cout << "Switch your current ally with " << new_ally.name() << " (enter y for 'yes)?";
+                if(to_lower(std::cin) != 'y'){
+                    // switchout allys
+                    party.push_back(ally);
+                    ally = new_ally;
+                } else {
+                    party.push_back(new_ally);
+                }
+            }
+        }
 
         // user chooses next step
         while(choice != 1 || choice != 2){
@@ -158,11 +181,11 @@ int main(){
                 return exit();
             }
         }
-        choice = 0;
+        choice = 0; // reset
     }
 
     if(won){
         // win sequence
-        //TODO
+        std::cout << "Congratulations! You won the game!\n";
     }
 }
