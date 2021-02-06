@@ -10,20 +10,23 @@ class Game{
     // game features
     std::unordered_map<std::string, Move> move_types;
     // player moves
-    moves["Poke"] = Move("Poke", "a small jab at one target", -3, false);
-    moves["Punch"] = Move("Punch", "a light punch to one target", -5, false);
-    moves["Kick"] = Move("Kick", "a swift kick to one target", -7, false);
-    moves["Knockdown"] = Move("Knockdown", "a forcefull hit to one target", -10, false);
+    move_types["Poke"] = Move("Poke", "a small jab at one target", -3, false);
+    move_types["Punch"] = Move("Punch", "a light punch to one target", -5, false);
+    move_types["Kick"] = Move("Kick", "a swift kick to one target", -7, false);
+    move_types["Knockdown"] = Move("Knockdown", "a forcefull hit to one target", -10, false);
     
     // moves corresponding to inventory items
-    moves["Medicine"] = Item("Medicine", "heals one target by 10 HP", 10, false, 0);
-    moves["Bomb"] = Item("Bomb", "causes explosion hitting all enemies", -10, true, 0);
+    move_types["Medicine"] = Item("Medicine", "heals one target by 10 HP", 10, false, 0);
+    move_types["Bomb"] = Item("Bomb", "causes explosion hitting all enemies", -10, true, 0);
+
+    // move corresponding to switching out allies
+    move_types["Switch Ally"] = Switch("Switch Ally", "switches ally out with another party member", 0, false);
     
     // enemy/ally moves
-    moves[""]
+    move_types[""]
 
     std::unordered_map<std::string, Character> enemy_types;
-    enemies["easy"] = Character("easy", 10, {});
+    enemy_types["easy"] = Character("easy", 10, {});
 
     std::forward_list<Location> map;
     map.insert_after(map.before_begin(), Location());
@@ -45,12 +48,12 @@ class Game{
         std::cout << "\n---------\n";
         std::cout << "HP Status\n";
         std::cout << "---------\n";
-        std::cout << prot.name() << " - " << prot.hp() << "\n";
+        std::cout << "1) " << prot.name() << " - " << prot.hp() << "\n";
         if(ally){
-            std::cout << ally.name() << " - " << ally.hp() << "\n";
+            std::cout << "2) " << ally.name() << " - " << ally.hp() << "\n";
         }
-        for(auto enemy : enemies){
-            std::cout << enemy.name() << " - " << enemy.hp() << "\n";
+        for(int i = 0; i < enemies.size(); i++){
+            std::cout << i+3 << ") " << enemy.name() << " - " << enemy.hp() << "\n";
         }
     }
 
@@ -64,7 +67,57 @@ class Game{
     }
 
     void next_user_move(Character& hero1, Character& hero2, vector<Character>& enemies){
+        int move_num, command_num, target_num = 0;
+        const vector<std::string>& moves = hero1.moves();
+        vector<Character> targets;
         
+        std::cout << hero1.name() << "'s turn.";
+
+        while(command_num != 2){
+            // no valid move chosen to be used yet
+            std::cout << "Choose one of the following moves:\n";
+            for(int i = 0; i < moves.size(); ++i){
+                std::cout << i+1 << ") " << moves[i] << "\n";
+            }
+            std::cin >> move_num;
+
+            if(move_num < 1 || move_num > moves.size()) continue; // invalid choice
+
+            std::cout << "Would you like:\n";
+            std::cout << "1) information about this move\n";
+            std::cout << "2) to use this move\n";
+            std::cin >> command_num;
+
+            if(command_num == 1){
+                std::cout << moves[move_num-1] << ": " << move_types[moves[move_num-1]].describe() << "\n\n";
+            }
+        }
+
+        if(moves[move_num-1] == 'Switch Ally'){
+            targets = party; // switching with another ally in party
+        } else if(move_types[moves[move_num-1]].hp_effect() > 0){
+            targets = {hero1, hero2}; // healing self and/or teamate
+        } else {
+            // attacking one or all undefeated enemies
+            for(Character enemy : enemies){
+                if(enemy.alive()) targets.push_back(enemy);
+            }
+        }
+
+        if(!move_types[moves[move_num-1]].target_all()){
+            // get specific target from user
+            while(target_num < 1 || target_num > targets.size()){
+                std::cout << "Who would you like to target:\n";
+                for(int i = 0; i < targets.size(); ++i){
+                    std::cout << i+1 << ") " << targets[i].name() << "\n";
+                }
+                std::cout >> target_num
+            }
+            targets = {targets[target_num-1]};
+        }
+
+        // perform move
+        move_types[moves[move_num-1]].perform(targets);
     }
 
     bool battle(vector<std::string>& enem_names){
@@ -118,12 +171,12 @@ class Game{
             std::cout << loc.describe() << "\n";
             
             // apply any healing effect from current location
-            hp_regain = prot.hp();
-            prot.heal(loc.heal_effect());
-            hp_regain = prot.hp() - hp_regain;
-            if(hp_regain > 0){
-                std::cout << "You regained " << hp_regain << " HP!\n";
-            }
+            // hp_regain = prot.hp();
+            // prot.heal(loc.heal_effect());
+            // hp_regain = prot.hp() - hp_regain;
+            // if(hp_regain > 0){
+            //     std::cout << "You regained " << hp_regain << " HP!\n";
+            // }
 
             // battle any enemies in area
             enemies = loc.enemies();
@@ -139,6 +192,16 @@ class Game{
 
             // check for locations with special events
             if(loc.name().substr(3) == "Inn"){
+                if(loc != map.front()){
+                    // fully heal party
+                    prot.full_heal();
+                    ally.full_heal();
+                    for(Character& member : party){
+                        member.full_heal();
+                    }
+                    std::cout << "You and your party are fully healed!\n";
+                }
+                
                 // replenish supplies while at the inn
                 move_types["Medicine"].replenish(3);
                 std::cout << "You picked up 3 medicines at the inn (for a total of " << move_types["Medicine"].uses() << ")\n";
@@ -148,18 +211,23 @@ class Game{
                 // enemy becomes a new ally
                 Character new_ally = enemy_types[enemies[0]];
                 new_ally.add_moves({"Medicine", "Bomb"});
+                // add to party
+                party.push_back(new_ally);
                 
                 std::cout << new_ally.name() << " became a new ally!\n";
                 if(!ally){
+                    // move from party to current ally
                     ally = new_ally;
+                    party.pop_back();
                 } else {
-                    std::cout << "Switch your current ally with " << new_ally.name() << " (enter y for 'yes)?";
+                    std::cout << "Switch your current ally with " << new_ally.name() << " (enter y for 'yes')?";
                     if(to_lower(std::cin) != 'y'){
-                        // switchout allys
-                        party.push_back(ally);
-                        ally = new_ally;
-                    } else {
-                        party.push_back(new_ally);
+                        // switchout allies
+                        move_types["Switch"].switch(ally, party, party.end()-1);
+                    }
+                    if(party.size() == 1){
+                        // add new move to allow user to switch allies
+                        prot.add_moves({"Switch Ally"});
                     }
                 }
             }
