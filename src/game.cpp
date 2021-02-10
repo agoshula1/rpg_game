@@ -12,17 +12,17 @@ class Game{
     // game features
     std::unordered_map<std::string, Move> move_types;
     // player moves
-    move_types["Poke"] = Move("Poke", "a small jab at one target", -3, false);
-    move_types["Punch"] = Move("Punch", "a light punch to one target", -5, false);
-    move_types["Kick"] = Move("Kick", "a swift kick to one target", -7, false);
-    move_types["Knockdown"] = Move("Knockdown", "a forcefull hit to one target", -10, false);
+    move_types["Poke"] = Move("Poke", "A small jab at one target.", -3, false);
+    move_types["Punch"] = Move("Punch", "A light punch to one target.", -5, false);
+    move_types["Kick"] = Move("Kick", "A swift kick to one target.", -7, false);
+    move_types["Knockdown"] = Move("Knockdown", "A forcefull hit to one target.", -10, false);
     
     // moves corresponding to inventory items
-    move_types["Use Medicine"] = Item("Use Medicine", "heals one target by 10 HP", 10, false, 0);
-    move_types["Use Bomb"] = Item("Use Bomb", "causes explosion hitting all enemies", -10, true, 0);
+    move_types["Use Medicine"] = Item("Use Medicine", "Heals one target by 10 HP.", 10, false, 0);
+    move_types["Use Bomb"] = Item("Use Bomb", "Causes explosion hitting all enemies.", -10, true, 0);
 
     // move corresponding to switching out allies
-    move_types["Switch Ally"] = Switch("Switch Ally", "switches ally out with another party member");
+    move_types["Switch Ally"] = Switch("Switch Ally", "Switches ally out with another party member.");
     
     // enemy/ally moves
     move_types[""]
@@ -71,7 +71,7 @@ class Game{
     }
 
     void next_user_move(Character& hero1, Character& hero2, vector<Character>& enemies){
-        int move_num, command_num, target_num = 0;
+        int move_num, command_num, target_num;
         const vector<std::string>& moves = hero1.get_moves();
         vector<Character> targets;
         
@@ -99,7 +99,7 @@ class Game{
 
         if(moves[move_num-1] == 'Switch Ally'){
             targets = party; // switching with another ally in party
-        } else if(move_types[moves[move_num-1]].hp_effect() > 0){
+        } else if(move_types[moves[move_num-1]].get_hp_effect() > 0){
             targets = {hero1, hero2}; // healing self and/or teamate
         } else {
             // attacking one or all undefeated enemies
@@ -108,7 +108,7 @@ class Game{
             }
         }
 
-        if(!move_types[moves[move_num-1]].target_all()){
+        if(!move_types[moves[move_num-1]].targets_all()){
             // get specific target from user
             while(target_num < 1 || target_num > targets.size()){
                 std::cout << "Who would you like to target:\n";
@@ -138,13 +138,13 @@ class Game{
             // pick move at random
             move = enemy.get_moves()[rand() % enemy.get_moves().size()];
 
-            if(move_types[move].hp_effect() > 0){
+            if(move_types[move].get_hp_effect() > 0){
                 targets = enemies; // healing self and/or teamates
             } else {
                 targets = {prot, ally}; // attacking hero and/or ally
             }
 
-            if(!move_types[move].target_all()){
+            if(!move_types[move].targets_all()){
                 // pick specific target at random
                 targets = {targets[rand() % targets.size()]};
             }
@@ -192,7 +192,6 @@ class Game{
         }    
         
         // play game
-        int hp_regain;
         vector<Character> enemies;
         int choice;
         bool won = true;
@@ -200,7 +199,7 @@ class Game{
             std::cout << loc.describe() << "\n";
             
             // battle any enemies in area
-            enemies = loc.enemies();
+            enemies = loc.get_enemies();
             if(!enemies.empty()){
                 won = battle(enemies);
                 if(!won){

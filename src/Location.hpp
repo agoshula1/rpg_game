@@ -6,10 +6,10 @@
 class Location{
     std::string name;
     std::string description;
-    vector<Character> enemies;
+    std::vector<Character> enemies;
 
     public:
-        std::string name();
+        std::string get_name();
         std::string describe();
-        vector<Character> enemies();
-}
+        std::vector<Character> get_enemies();
+};
