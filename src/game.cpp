@@ -3,40 +3,47 @@
 #include <unordered_map>
 #include <forward_list>
 #include <vector>
+#include <ctime>
 
-#include "Character.hpp"
 #include "Location.hpp"
 #include "Move.hpp"
+#include "Item.hpp"
+#include "Switch.hpp"
 
 class Game{
     // game features
     std::unordered_map<std::string, Move> move_types;
-    // player moves
-    move_types["Poke"] = Move("Poke", "A small jab at one target.", -3, false);
-    move_types["Punch"] = Move("Punch", "A light punch to one target.", -5, false);
-    move_types["Kick"] = Move("Kick", "A swift kick to one target.", -7, false);
-    move_types["Knockdown"] = Move("Knockdown", "A forcefull hit to one target.", -10, false);
-    
-    // moves corresponding to inventory items
-    move_types["Use Medicine"] = Item("Use Medicine", "Heals one target by 10 HP.", 10, false, 0);
-    move_types["Use Bomb"] = Item("Use Bomb", "Causes explosion hitting all enemies.", -10, true, 0);
+    Character prot, ally;
+    std::vector<Character> party;
 
-    // move corresponding to switching out allies
-    move_types["Switch Ally"] = Switch("Switch Ally", "Switches ally out with another party member.");
-    
-    // enemy/ally moves
-    move_types[""]
+    Game(){
+        // player moves
+        move_types["Poke"] = Move("Poke", "A small jab at one target.", -3, false);
+        move_types["Punch"] = Move("Punch", "A light punch to one target.", -5, false);
+        move_types["Kick"] = Move("Kick", "A swift kick to one target.", -7, false);
+        move_types["Knockdown"] = Move("Knockdown", "A forcefull hit to one target.", -10, false);
+        
+        // moves corresponding to inventory items
+        move_types["Use Medicine"] = Item("Use Medicine", "Heals one target by 10 HP.", 10, false, 0);
+        move_types["Use Bomb"] = Item("Use Bomb", "Causes explosion hitting all enemies.", -10, true, 0);
 
-    std::unordered_map<std::string, Character> enemy_types;
-    enemy_types["easy"] = Character("easy", 10, {});
+        // move corresponding to switching out allies
+        move_types["Switch Ally"] = Switch("Switch Ally", "Switches ally out with another party member.");
+        
+        // enemy/ally moves
+        // move_types[""]
 
-    std::forward_list<Location> map;
-    map.insert_after(map.before_begin(), Location());
+        std::unordered_map<std::string, Character> enemy_types;
+        enemy_types["easy"] = Character("easy", 10, {});
 
-    // init status
-    Character prot = new Character("hero", 30, {"Poke", "Use Medicine", "Use Bomb"});
-    Character ally = NULL;
-    vector<Character> party = {};
+        std::forward_list<Location> map;
+        // map.insert_after(map.before_begin(), Location());
+
+        // init status
+        prot = new Character("hero", 30, {"Poke", "Use Medicine", "Use Bomb"});
+        ally = NULL;
+        party = {};
+    }
 
     void intro(){
         std::cout << "-------------------\n";
@@ -46,34 +53,34 @@ class Game{
         std::cout << "An introduction to the game.\n";
     }
 
-    void hp_status(vector<Character>& enemies){
+    void hp_status(std::vector<Character>& enemies){
         std::cout << "\n---------\n";
         std::cout << "HP Status\n";
         std::cout << "---------\n";
-        std::cout << "1) " << prot.get_name() << " - " << prot.hp() << "\n";
-        if(ally){
-            std::cout << "2) " << ally.get_name() << " - " << ally.hp() << "\n";
+        std::cout << "1) " << prot.get_name() << " - " << prot.get_hp() << "\n";
+        if(ally != NULL){
+            std::cout << "2) " << ally.get_name() << " - " << ally.get_hp() << "\n";
         }
         for(int i = 0; i < enemies.size(); i++){
             if(enemies[i].alive()){
-                std::cout << i+3 << ") " << enemies[i].get_name() << " - " << enemies[i].hp() << "\n";
+                std::cout << i+3 << ") " << enemies[i].get_name() << " - " << enemies[i].get_hp() << "\n";
             }
         }
     }
 
-    bool battle_ongoing(vector<Character>& enemies){
+    bool battle_ongoing(std::vector<Character>& enemies){
         if(!prot.alive()) return false;
-        if(ally && !ally.alive()) return false;
+        if(ally != NULL && !ally.alive()) return false;
         for(auto enemy : enemies){
             if(enemy.alive()) return true;
         }
         return false; // no undefeated enemies left
     }
 
-    void next_user_move(Character& hero1, Character& hero2, vector<Character>& enemies){
+    void next_user_move(Character& hero1, Character& hero2, std::vector<Character>& enemies){
         int move_num, command_num, target_num;
-        const vector<std::string>& moves = hero1.get_moves();
-        vector<Character> targets;
+        const std::vector<std::string>& moves = hero1.get_moves();
+        std::vector<Character> targets;
         
         std::cout << hero1.get_name() << "'s turn.";
 
@@ -97,7 +104,7 @@ class Game{
             }
         }
 
-        if(moves[move_num-1] == 'Switch Ally'){
+        if(moves[move_num-1] == "Switch Ally"){
             targets = party; // switching with another ally in party
         } else if(move_types[moves[move_num-1]].get_hp_effect() > 0){
             targets = {hero1, hero2}; // healing self and/or teamate
@@ -115,23 +122,23 @@ class Game{
                 for(int i = 0; i < targets.size(); ++i){
                     std::cout << i+1 << ") " << targets[i].get_name() << "\n";
                 }
-                std::cout >> target_num
+                std::cin >> target_num;
             }
             targets = {targets[target_num-1]};
         }
 
         // perform move
         std::cout << hero1.get_name() << " uses " << moves[move_num-1] << ".\n";
-        if(moves[move_num-1] == 'Switch Ally'){
+        if(moves[move_num-1] == "Switch Ally"){
             move_types[moves[move_num-1]].use(ally, targets[0]);
         } else {
             move_types[moves[move_num-1]].use(targets);
         }
     }
 
-    void next_enemy_moves(vector<Character>& enemies){
+    void next_enemy_moves(std::vector<Character>& enemies){
         std::string move;
-        vector<Character> targets;
+        std::vector<Character> targets;
         for(Character& enemy : enemies){
             if(!enemy.alive()) continue;
 
@@ -155,7 +162,7 @@ class Game{
         }
     }
 
-    bool battle(vector<Character>& enemies){
+    bool battle(std::vector<Character>& enemies){
         // announce battle if enemies exist
         if(!enemies.empty()){
             std::cout << "\n===================\n";
@@ -181,7 +188,8 @@ class Game{
         return prot.alive() && ally ? ally.alive() : true; // determine if main character and ally are still alive
     }
 
-    void play(){
+    public:
+        void play(){
         intro();
         
         std::cout << "Are you ready to start (enter y for 'yes')?\n";
@@ -192,7 +200,7 @@ class Game{
         }    
         
         // play game
-        vector<Character> enemies;
+        std::vector<Character> enemies;
         int choice;
         bool won = true;
         for(Location& loc : map){

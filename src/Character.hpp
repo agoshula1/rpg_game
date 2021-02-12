@@ -1,3 +1,6 @@
+#ifndef CHARACTER_H
+#define CHARACTER_H
+
 #include <string>
 #include <vector>
 
@@ -16,3 +19,5 @@ class Character{
         void apply_hp_effect(int);
         void add_moves(std::vector<std::string>);
 };
+
+#endif

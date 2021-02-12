@@ -1,3 +1,6 @@
+#ifndef ITEM_H
+#define ITEM_H
+
 #include "Move.hpp"
 
 class Item : public Move{
@@ -9,3 +12,5 @@ class Item : public Move{
         void replenish(int);
         void use(std::vector<Character>&); // need to decrement uses
 };
+
+#endif

@@ -1,5 +1,8 @@
 #include "Move.hpp"
 
+Move::Move(std::string name, std::string description, int hp_effect, bool target_all)
+    : name(name), description(description), hp_effect(hp_effect), target_all(target_all) {}
+    
 std::string Move::get_name(){
     return name;
 }

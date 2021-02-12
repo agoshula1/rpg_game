@@ -1,3 +1,6 @@
+#ifndef MOVE_H
+#define MOVE_H
+
 #include <string>
 #include <vector>
 
@@ -18,3 +21,5 @@ class Move{
         bool targets_all();
         void use(std::vector<Character>&);
 };
+
+#endif
