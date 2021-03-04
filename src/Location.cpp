@@ -1,4 +1,4 @@
-#include "Location.hpp"
+#include <rpg/Location.hpp>
 
 Location::Location(std::string name, std::string description, std::vector<Character> enemies)
     : name(name), description(description), enemies(enemies) {}

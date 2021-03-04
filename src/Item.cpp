@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Item.hpp"
+#include <rpg/Item.hpp>
 
 Item::Item(std::string name, std::string description, int hp_effect, bool target_all, int uses)
     : Move(name, description, hp_effect, target_all), uses(uses) {}

@@ -5,10 +5,10 @@
 #include <vector>
 #include <ctime>
 
-#include "Location.hpp"
-#include "Move.hpp"
-#include "Item.hpp"
-#include "Switch.hpp"
+#include <rpg/Character.hpp>
+#include <rpg/Move.hpp>
+#include <rpg/Item.hpp>
+#include <rpg/Switch.hpp>
 
 class Game{
     // game features
@@ -285,9 +285,17 @@ class Game{
             std::cout << "Congratulations! You won the game!\n";
         }
     }
-}
+};
 
-int main(){
+int main(int argc, char* argv[]){
+    if (argc < 2) {
+        // report version
+        std::cout << argv[0] << " Version " << RPG_VERSION_MAJOR << "."
+                << RPG_VERSION_MINOR << "\n";
+        std::cout << "Usage: " << argv[0] << " number" << "\n";
+        return 1;
+    }
+  
     // initialize random seed
     srand(time(NULL));
 

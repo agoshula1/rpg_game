@@ -1,4 +1,4 @@
-#include "Switch.hpp"
+#include <rpg/Switch.hpp>
 
 Switch::Switch(std::string name, std::string description) : Move(name, description, 0, false) {}
 

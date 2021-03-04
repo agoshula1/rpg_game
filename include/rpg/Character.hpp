@@ -11,10 +11,10 @@ class Character{
 
     public:
         Character(std::string, int, std::vector<std::string>);
-        std::string get_name();
-        int get_hp();
-        std::vector<std::string> get_moves();
-        bool alive();
+        std::string get_name() const;
+        int get_hp() const;
+        std::vector<std::string> get_moves() const;
+        bool alive() const;
         void full_heal();
         void apply_hp_effect(int);
         void add_moves(std::vector<std::string>);
