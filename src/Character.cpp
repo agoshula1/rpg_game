@@ -26,13 +26,16 @@ bool Character::alive() const{
 }
 
 void Character::apply_hp_effect(int hp_effect){
-    curr_hp = hp_effect < 0 ? (curr_hp + hp_effect < 0 ? 0 : curr_hp + hp_effect) // avoid negative HP
-        : (INT_MAX - hp_effect < curr_hp ? INT_MAX // avoid integer overflow
-            : (curr_hp + hp_effect > max_hp ? max_hp : curr_hp + hp_effect)); // avoid higher than max HP
+    // do not change HP if already dead
+    if(curr_hp > 0){
+        curr_hp = hp_effect < 0 ? (curr_hp + hp_effect < 0 ? 0 : curr_hp + hp_effect) // avoid negative HP
+            : (INT_MAX - hp_effect < curr_hp ? INT_MAX // avoid integer overflow
+                : (curr_hp + hp_effect > max_hp ? max_hp : curr_hp + hp_effect)); // avoid higher than max HP
+    }    
 }
 
 void Character::full_heal(){
-    curr_hp = max_hp;
+    if(alive()) curr_hp = max_hp;
 }
 
 void Character::add_moves(std::vector<std::string> new_moves){

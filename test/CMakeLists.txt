@@ -8,12 +8,19 @@ find_package(Boost)
 # add each test file as executable
 add_executable(testchar CharacterTest.cpp)
 
-# TODO add tests for Location and Move (and subclasses)
+add_executable(testmove MoveTest.cpp)
+# TODO add tests for other library classes
 
 # link each test executable to main library and Boost
 target_link_libraries(testchar PRIVATE rpg_library Boost::boost)
+
+target_link_libraries(testmove PRIVATE rpg_library Boost::boost)
 
 # TODO link libraries to other test executables
 
 # register tests
 add_test(NAME testchar COMMAND testchar)
+
+add_test(NAME testmove COMMAND testmove)
+
+# TODO register other tests

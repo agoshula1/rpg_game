@@ -15,10 +15,10 @@ class Move{
     
     public:
         Move(std::string, std::string, int, bool);
-        std::string get_name();
-        std::string describe();
-        int get_hp_effect();
-        bool targets_all();
+        std::string get_name() const;
+        std::string describe() const;
+        int get_hp_effect() const;
+        bool targets_all() const;
         void use(std::vector<Character>&);
 };
 

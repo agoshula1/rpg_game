@@ -1,21 +1,25 @@
+#include <stdexcept>
 #include <rpg/Move.hpp>
 
 Move::Move(std::string name, std::string description, int hp_effect, bool target_all)
-    : name(name), description(description), hp_effect(hp_effect), target_all(target_all) {}
+    : name(name), description(description), hp_effect(hp_effect), target_all(target_all) {
+        if(name.empty()) throw std::invalid_argument("Name of move cannot be empty.");
+        if(description.empty()) throw std::invalid_argument("Description of move cannot be empty.");
+    }
     
-std::string Move::get_name(){
+std::string Move::get_name() const{
     return name;
 }
 
-std::string Move::describe(){
+std::string Move::describe() const{
     return description;
 }
 
-int Move::get_hp_effect(){
+int Move::get_hp_effect() const{
     return hp_effect;
 }
 
-bool Move::targets_all(){
+bool Move::targets_all() const{
     return target_all;
 }
 
